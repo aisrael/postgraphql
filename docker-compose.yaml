@@ -1,0 +1,10 @@
+version: "3"
+services:
+  postgres:
+    image: postgres:17.5-alpine
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: SBz0rg0fOV34VqbC
+      POSTGRES_DB: postgraphql
