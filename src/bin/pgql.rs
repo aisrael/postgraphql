@@ -1,9 +1,36 @@
-use axum::{Router, routing::get};
+use axum::{routing::get, Router};
+use postgraphql::{connect, healthz};
+use tokio::time::{timeout, Duration};
 
-use postgraphql::healthz;
+mod embedded {
+    use refinery::embed_migrations;
+    embed_migrations!("./etc/migrations");
+}
+
+async fn initialize_db() {
+    match connect().await {
+        Ok(mut client) => {
+            println!("Connected successfully!");
+            let runner = embedded::migrations::runner();
+            let duration = Duration::from_secs(10);
+            match timeout(duration, runner.run_async(&mut client)).await {
+                Ok(r) => {
+                    println!("{:?}", r);
+                    println!("Successfully applied migrations");
+                }
+                Err(e) => panic!("{}", e),
+            }
+        }
+        Err(e) => {
+            panic!("{}", e);
+        }
+    }
+}
 
 #[tokio::main]
 async fn main() {
+    initialize_db().await;
+
     // Create our application with a single route
     let app = Router::new().route("/healthz", get(healthz));
 

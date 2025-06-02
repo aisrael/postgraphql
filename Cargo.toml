@@ -14,3 +14,4 @@ tower-http = { version = "0.6.4", features = ["trace"] }
 postgres = "0.19.10"
 tokio-postgres = "0.7.13"
 thiserror = "2.0.12"
+refinery = { version = "0.8.16", features = ["tokio-postgres"]}

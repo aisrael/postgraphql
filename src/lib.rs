@@ -12,13 +12,21 @@ pub async fn healthz() -> &'static str {
     "OK"
 }
 
-pub async fn connect() -> Result<(Client, Connection<Socket, impl TlsStream>), Error> {
-    tokio_postgres::connect(
+pub async fn connect() -> Result<Client, Error> {
+    let (client, connection) = tokio_postgres::connect(
         "host=localhost user=postgres password=postgres dbname=postgraphql",
         NoTls,
     )
     .await
-    .map_err(|e| Error::PostgresError(e))
+    .map_err(|e| Error::PostgresError(e))?;
+
+    tokio::spawn(async move {
+        if let Err(e) = connection.await {
+            eprintln!("connection error: {}", e);
+        }
+    });
+
+    return Ok(client);
 }
 
 #[cfg(test)]
@@ -35,7 +43,7 @@ mod tests {
                 println!("len: {:?}", row.columns());
                 for i in 0..row.columns().len() {
                     println!("column {}: {:?}", i, row.columns()[i]);
-                    println!("{}", row.get(i).unwra qp());
+                    println!("{}", row.get(i).unwrap());
                 }
             }
             CommandComplete(count) => {
@@ -54,12 +62,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_pg() -> Result<(), Error> {
-        let (client, connection) = connect().await?;
-        tokio::spawn(async move {
-            if let Err(e) = connection.await {
-                eprintln!("connection error: {}", e);
-            }
-        });
+        let client = connect().await?;
         let rows = client.simple_query("SELECT 1").await?;
         for row in rows {
             debug(row)
