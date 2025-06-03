@@ -1,5 +1,5 @@
-use tokio_postgres::tls::{NoTls, TlsStream};
-use tokio_postgres::{Client, Connection, Socket};
+use tokio_postgres::tls::NoTls;
+use tokio_postgres::Client;
 
 pub mod handlers;
 
@@ -15,7 +15,7 @@ pub async fn connect() -> Result<Client, Error> {
         NoTls,
     )
     .await
-    .map_err(|e| Error::PostgresError(e))?;
+    .map_err(Error::PostgresError)?;
 
     tokio::spawn(async move {
         if let Err(e) = connection.await {
@@ -23,7 +23,7 @@ pub async fn connect() -> Result<Client, Error> {
         }
     });
 
-    return Ok(client);
+    Ok(client)
 }
 
 #[cfg(test)]
