@@ -10,8 +10,8 @@ CREATE TABLE books
 (
     id SERIAL PRIMARY KEY,
     title TEXT NOT NULL,
-    publish_year INTEGER NOT NULL,
-    publish_month INTEGER NOT NULL,
+    publish_year SMALLINT NOT NULL,
+    publish_month SMALLINT NOT NULL,
     CHECK (publish_year > 0),
     CHECK (publish_month BETWEEN 1 AND 12)
 );

@@ -2,6 +2,7 @@ use tokio_postgres::Client;
 use tokio_postgres::tls::NoTls;
 
 mod auth;
+mod bookstore;
 
 pub mod handlers;
 
@@ -9,6 +10,8 @@ pub mod handlers;
 pub enum Error {
     #[error("postgres error")]
     PostgresError(#[from] tokio_postgres::Error),
+    #[error("sqlx error")]
+    SqlxError(#[from] sqlx::Error),
 }
 
 pub async fn connect() -> Result<Client, Error> {

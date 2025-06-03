@@ -3,6 +3,7 @@ use http::StatusCode;
 use serde_json::{json, Value};
 
 use crate::auth::Claims;
+use crate::bookstore::Author;
 
 /// Handler for the health check endpoint, just returns HTTP 200 "OK"
 pub async fn healthz() -> &'static str {
