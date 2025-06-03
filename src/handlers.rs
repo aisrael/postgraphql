@@ -1,8 +1,9 @@
+use crate::app_state::AppState;
+use crate::auth::Claims;
+use axum::extract::State;
 use axum::response::{IntoResponse, Json, Response};
 use http::StatusCode;
-use serde_json::{Value, json};
-
-use crate::auth::Claims;
+use serde_json::{json, Value};
 
 /// Handler for the health check endpoint, just returns HTTP 200 "OK"
 pub async fn healthz() -> &'static str {
@@ -25,7 +26,8 @@ impl IntoResponse for MaybeJson {
 }
 
 /// The authors endpoint
-pub async fn authors(claims: Claims) -> (StatusCode, MaybeJson) {
-    println!("{:#?}", claims);
+pub async fn authors(State(state): State<AppState>, claims: Claims) -> (StatusCode, MaybeJson) {
+    println!("{:?}", state);
+    println!("{:?}", claims);
     (StatusCode::OK, MaybeJson::Json(json!({})))
 }

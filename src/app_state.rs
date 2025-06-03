@@ -1,7 +1,7 @@
 use sqlx::postgres::PgPoolOptions;
 use sqlx::{Pool, Postgres};
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct AppState {
     pub db_pool: Pool<Postgres>,
 }
