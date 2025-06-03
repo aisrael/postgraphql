@@ -1,5 +1,7 @@
-use tokio_postgres::tls::NoTls;
 use tokio_postgres::Client;
+use tokio_postgres::tls::NoTls;
+
+mod auth;
 
 pub mod handlers;
 

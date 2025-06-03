@@ -1,7 +1,7 @@
-use axum::{routing::get, Router};
+use axum::{Router, routing::get};
 use postgraphql::connect;
 use postgraphql::handlers::{authors, healthz};
-use tokio::time::{timeout, Duration};
+use tokio::time::{Duration, timeout};
 
 mod embedded {
     use refinery::embed_migrations;
