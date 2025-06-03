@@ -1,5 +1,6 @@
 use axum::{routing::get, Router};
-use postgraphql::{connect, healthz};
+use postgraphql::connect;
+use postgraphql::handlers::{authors, healthz};
 use tokio::time::{timeout, Duration};
 
 mod embedded {
@@ -22,21 +23,19 @@ async fn initialize_db() {
                 }
             }
             match timeout(duration, runner.run_async(&mut client)).await {
-                Ok(result) => {
-                    match result {
-                        Ok(report) => {
-                            if report.applied_migrations().is_empty() {
-                                println!("No migrations applied");
-                            } else {
-                                println!("Successfully applied migrations:");
-                                for applied_migration in report.applied_migrations() {
-                                    println!("{}", applied_migration);
-                                }
+                Ok(result) => match result {
+                    Ok(report) => {
+                        if report.applied_migrations().is_empty() {
+                            println!("No migrations applied");
+                        } else {
+                            println!("Successfully applied migrations:");
+                            for applied_migration in report.applied_migrations() {
+                                println!("{}", applied_migration);
                             }
                         }
-                        Err(e) => panic!("{}", e),
                     }
-                }
+                    Err(e) => panic!("{}", e),
+                },
                 Err(e) => panic!("{}", e),
             }
         }
@@ -51,7 +50,9 @@ async fn main() {
     initialize_db().await;
 
     // Create our application with a single route
-    let app = Router::new().route("/healthz", get(healthz));
+    let app = Router::new()
+        .route("/healthz", get(healthz))
+        .route("/authors", get(authors));
 
     // run our app with hyper, listening globally on port 3000
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();

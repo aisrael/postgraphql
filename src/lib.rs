@@ -1,15 +1,12 @@
 use tokio_postgres::tls::{NoTls, TlsStream};
 use tokio_postgres::{Client, Connection, Socket};
 
+pub mod handlers;
+
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
     #[error("postgres error")]
     PostgresError(#[from] tokio_postgres::Error),
-}
-
-// Handler for the health check endpoint, just returns HTTP 200 "OK"
-pub async fn healthz() -> &'static str {
-    "OK"
 }
 
 pub async fn connect() -> Result<Client, Error> {
