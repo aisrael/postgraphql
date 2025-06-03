@@ -1,12 +1,12 @@
+use axum::RequestPartsExt;
 use axum::extract::FromRequestParts;
 use axum::response::{IntoResponse, Response};
-use axum::RequestPartsExt;
-use axum_extra::headers::authorization::Bearer;
-use axum_extra::headers::Authorization;
 use axum_extra::TypedHeader;
-use http::request::Parts;
+use axum_extra::headers::Authorization;
+use axum_extra::headers::authorization::Bearer;
 use http::StatusCode;
-use jsonwebtoken::{decode, DecodingKey, Validation};
+use http::request::Parts;
+use jsonwebtoken::{DecodingKey, Validation, decode};
 use serde::{Deserialize, Serialize};
 use std::sync::LazyLock;
 static DECODING_KEY: LazyLock<DecodingKey> = LazyLock::new(|| {
@@ -63,7 +63,7 @@ where
 mod tests {
     use super::*;
 
-    use jsonwebtoken::{encode, EncodingKey, Header};
+    use jsonwebtoken::{EncodingKey, Header, encode};
 
     #[test]
     pub fn test_keys() -> Result<(), anyhow::Error> {

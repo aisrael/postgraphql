@@ -1,6 +1,5 @@
 use axum::{Router, routing::get};
-use postgraphql::connect;
-use postgraphql::handlers::{authors, healthz};
+use postgraphql::{connect, initialize_app};
 use tokio::time::{Duration, timeout};
 
 mod embedded {
@@ -49,10 +48,7 @@ async fn initialize_db() {
 async fn main() {
     initialize_db().await;
 
-    // Create our application with a single route
-    let app = Router::new()
-        .route("/healthz", get(healthz))
-        .route("/authors", get(authors));
+    let app = initialize_app().await.unwrap();
 
     // run our app with hyper, listening globally on port 3000
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();

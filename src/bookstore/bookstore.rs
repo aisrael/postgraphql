@@ -1,8 +1,8 @@
 #[derive(Debug)]
 pub struct BookStore {}
 
-use crate::bookstore::Author;
 use crate::Error;
+use crate::bookstore::Author;
 
 impl BookStore {
     pub async fn list_authors() -> Result<Vec<Author>, Error> {

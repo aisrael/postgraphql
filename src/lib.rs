@@ -1,10 +1,24 @@
+use axum::Router;
+use axum::routing::get;
 use tokio_postgres::Client;
 use tokio_postgres::tls::NoTls;
 
+mod app_state;
 mod auth;
 mod bookstore;
+mod handlers;
 
-pub mod handlers;
+use crate::app_state::AppState;
+use crate::handlers::{authors, healthz};
+
+pub async fn initialize_app() -> Result<axum::Router, anyhow::Error> {
+    let app_state = AppState::new().await?;
+    let router = Router::new()
+        .route("/healthz", get(healthz))
+        .route("/authors", get(authors))
+        .with_state(app_state);
+    Ok(router)
+}
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
