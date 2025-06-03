@@ -1,9 +1,10 @@
 use sqlx::postgres::PgPoolOptions;
 use sqlx::{Pool, Postgres};
+use crate::bookstore::BookStore;
 
 #[derive(Debug, Clone)]
 pub struct AppState {
-    pub db_pool: Pool<Postgres>,
+    pub book_store: BookStore
 }
 
 impl AppState {
@@ -13,6 +14,8 @@ impl AppState {
             .connect("postgres://postgres:postgres@localhost/postgraphql")
             .await?;
 
-        Ok(AppState { db_pool })
+        let book_store = BookStore::new(db_pool);
+
+        Ok(AppState { book_store })
     }
 }

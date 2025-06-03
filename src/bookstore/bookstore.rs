@@ -1,12 +1,20 @@
-#[derive(Debug)]
-pub struct BookStore {}
-
-use crate::Error;
 use crate::bookstore::Author;
+use crate::Error;
+
+#[derive(Debug, Clone)]
+pub struct BookStore {
+    db_pool: sqlx::pool::Pool<sqlx::Postgres>,
+}
 
 impl BookStore {
-    pub async fn list_authors() -> Result<Vec<Author>, Error> {
-        Ok(vec![])
+    pub fn new(db_pool: sqlx::pool::Pool<sqlx::Postgres>) -> BookStore {
+        BookStore { db_pool }
+    }
+
+    pub async fn list_authors(&self) -> Result<Vec<Author>, Error> {
+        Ok(sqlx::query_as::<_, Author>("SELECT id, name FROM authors")
+            .fetch_all(&self.db_pool)
+            .await?)
     }
 }
 

@@ -29,5 +29,9 @@ impl IntoResponse for MaybeJson {
 pub async fn authors(State(state): State<AppState>, claims: Claims) -> (StatusCode, MaybeJson) {
     println!("{:?}", state);
     println!("{:?}", claims);
-    (StatusCode::OK, MaybeJson::Json(json!({})))
+    let AppState { book_store } = state;
+    match book_store.list_authors().await {
+        Ok(authors) => (StatusCode::OK, MaybeJson::Json(json!(authors))),
+        Err(_) => (StatusCode::INTERNAL_SERVER_ERROR, MaybeJson::None),
+    }
 }
