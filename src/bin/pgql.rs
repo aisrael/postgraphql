@@ -1,10 +1,9 @@
-use axum::{Router, routing::get};
 use postgraphql::{connect, initialize_app};
 use tokio::time::{Duration, timeout};
 
 mod embedded {
     use refinery::embed_migrations;
-    embed_migrations!("./etc/migrations");
+    embed_migrations!("./etc/migrations/postgres");
 }
 
 async fn initialize_db() {

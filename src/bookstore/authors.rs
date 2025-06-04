@@ -35,7 +35,7 @@ impl FromRow<'_, MySqlRow> for Author {
         let id: i64 = if type_name == "BIGINT UNSIGNED" {
             let u = row.try_get::<u64, _>("id")?;
             u as i64
-        } else if type_name == "I64" {
+        } else if type_name == "INT" {
             row.try_get("id")?
         } else {
             return Err(sqlx::Error::TypeNotFound {

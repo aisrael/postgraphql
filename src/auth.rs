@@ -25,7 +25,6 @@ pub struct Claims {
 #[derive(Debug)]
 pub enum AuthError {
     MissingCredentials,
-    InvalidCredentials,
     InvalidToken,
 }
 
@@ -33,7 +32,6 @@ impl IntoResponse for AuthError {
     fn into_response(self) -> Response {
         let error_message = match self {
             AuthError::MissingCredentials => "Missing credentials",
-            AuthError::InvalidCredentials => "Invalid credentials",
             AuthError::InvalidToken => "Invalid token",
         };
         (StatusCode::UNAUTHORIZED, error_message).into_response()
@@ -50,7 +48,7 @@ where
         let TypedHeader(Authorization(bearer)) = parts
             .extract::<TypedHeader<Authorization<Bearer>>>()
             .await
-            .map_err(|_| AuthError::InvalidToken)?;
+            .map_err(|_| AuthError::MissingCredentials)?;
 
         let token_data = decode::<Claims>(bearer.token(), &DECODING_KEY, &Validation::default())
             .map_err(|_| AuthError::InvalidToken)?;
