@@ -22,6 +22,8 @@ pub async fn initialize_app() -> Result<axum::Router, anyhow::Error> {
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
+    #[error("Don't know how to connect to DATABASE_URL: {0}")]
+    DatabaseUrlError(String),
     #[error("postgres error")]
     PostgresError(#[from] tokio_postgres::Error),
     #[error("sqlx error")]

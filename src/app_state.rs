@@ -1,21 +1,27 @@
+use std::fmt::Debug;
+use crate::bookstore::bookstore::{MySqlBookStore, PostgresBookStore};
 use sqlx::postgres::PgPoolOptions;
-use sqlx::{Pool, Postgres};
+use sqlx::MySqlPool;
+use std::sync::{Arc, LazyLock};
 use crate::bookstore::BookStore;
 
-#[derive(Debug, Clone)]
+pub static DATABASE_URL: LazyLock<String> =
+    LazyLock::new(|| std::env::var("DATABASE_URL").expect("DATABASE_URL not set!"));
+
+#[derive(Clone)]
 pub struct AppState {
-    pub book_store: BookStore
+    pub book_store: Arc<BookStore>,
+}
+
+impl Debug for AppState {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("AppState").finish()
+    }
 }
 
 impl AppState {
-    pub async fn new() -> Result<Self, anyhow::Error> {
-        let db_pool = PgPoolOptions::new()
-            .max_connections(5)
-            .connect("postgres://postgres:postgres@localhost/postgraphql")
-            .await?;
-
-        let book_store = BookStore::new(db_pool);
-
+    pub async fn new() -> Result<AppState, anyhow::Error> {
+        let book_store = Arc::new(BookStore::new(&DATABASE_URL).await?);
         Ok(AppState { book_store })
     }
 }

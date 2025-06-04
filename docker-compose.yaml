@@ -8,3 +8,10 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: postgraphql
+  mariadb:
+    image: mariadb:11.7
+    ports:
+      - 3306:3306
+    environment:
+      MARIADB_ROOT_PASSWORD: password
+      MARIADB_DATABASE: postgraphql

@@ -4,6 +4,8 @@ use axum::extract::State;
 use axum::response::{IntoResponse, Json, Response};
 use http::StatusCode;
 use serde_json::{json, Value};
+use crate::bookstore::BookStore;
+use crate::bookstore::bookstore::PostgresBookStore;
 
 /// Handler for the health check endpoint, just returns HTTP 200 "OK"
 pub async fn healthz() -> &'static str {
