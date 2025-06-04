@@ -10,6 +10,7 @@ pub mod authors;
 pub mod books;
 
 pub use authors::Author;
+use crate::bookstore::books::Book;
 
 pub struct BookStore {
     book_store_impl: Box<dyn BookStoreImpl + Send + Sync>,
@@ -52,6 +53,10 @@ impl BookStore {
     pub async fn find_author_by_id(&self, author_id: i64) -> Result<Option<Author>, Error> {
         self.book_store_impl.find_author_by_id(author_id).await
     }
+
+    pub async fn list_books_by_author_id(&self, author_id: i64) -> Result<Vec<Book>, Error> {
+        self.book_store_impl.list_books_by_author_id(author_id).await
+    }
 }
 
 #[async_trait]
@@ -59,6 +64,8 @@ pub trait BookStoreImpl {
     async fn list_authors(&self) -> Result<Vec<Author>, Error>;
 
     async fn find_author_by_id(&self, author_id: i64) -> Result<Option<Author>, Error>;
+
+    async fn list_books_by_author_id(&self, author_id: i64) -> Result<Vec<Book>, Error>;
 }
 
 #[derive(Debug, Clone)]
@@ -88,6 +95,15 @@ impl BookStoreImpl for PostgresBookStore {
                 .await?,
         )
     }
+
+    async fn list_books_by_author_id(&self, author_id: i64) -> Result<Vec<Book>, Error> {
+        let sql = r#"
+SELECT b.id, b.title, b.publish_year, b.publish_month
+FROM authors_books ab JOIN books b ON ab.book_id = b.id
+WHERE ab.author_id = $1
+        "#;
+        Ok(sqlx::query_as::<_, Book>(sql).bind(author_id).fetch_all(&self.db_pool).await?)
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -111,11 +127,20 @@ impl BookStoreImpl for MySqlBookStore {
 
     async fn find_author_by_id(&self, author_id: i64) -> Result<Option<Author>, Error> {
         Ok(
-            sqlx::query_as::<_, Author>("SELECT id, name FROM authors WHERE id = $1")
+            sqlx::query_as::<_, Author>("SELECT id, name FROM authors WHERE id = ?")
                 .bind(author_id)
                 .fetch_optional(&self.db_pool)
                 .await?,
         )
+    }
+
+    async fn list_books_by_author_id(&self, author_id: i64) -> Result<Vec<Book>, Error> {
+        let sql = r#"
+SELECT b.id, b.title, b.publish_year, b.publish_month
+FROM authors_books ab JOIN books b ON ab.book_id = b.id
+WHERE ab.author_id = ?
+        "#;
+        Ok(sqlx::query_as::<_, Book>(sql).bind(author_id).fetch_all(&self.db_pool).await?)
     }
 }
 

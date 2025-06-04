@@ -58,3 +58,18 @@ pub async fn get_author_by_id(
         }
     }
 }
+
+pub async fn list_books_by_author_id(
+    State(state): State<AppState>,
+    _claims: Claims,
+    Path(author_id): Path<i64>,
+) -> (StatusCode, MaybeJson) {
+    let AppState { book_store } = state;
+    match book_store.list_books_by_author_id(author_id).await {
+        Ok(books) => (StatusCode::OK, MaybeJson::Json(json!(books))),
+        Err(e) => {
+            eprintln!("{:?}", e);
+            (StatusCode::INTERNAL_SERVER_ERROR, MaybeJson::None)
+        }
+    }
+}

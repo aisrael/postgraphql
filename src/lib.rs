@@ -1,6 +1,6 @@
 use axum::extract::Request;
 use axum::middleware::{from_fn, Next};
-use axum::response::{IntoResponse, Response};
+use axum::response::Response;
 use axum::routing::get;
 use axum::Router;
 use tokio_postgres::tls::NoTls;
@@ -9,16 +9,22 @@ use tokio_postgres::Client;
 mod app_state;
 mod auth;
 mod bookstore;
+mod db_utils;
 mod handlers;
 
 use crate::app_state::AppState;
-use crate::handlers::{authors, get_author_by_id, healthz};
+use crate::handlers::{authors, get_author_by_id, healthz, list_books_by_author_id};
 
 pub async fn initialize_app() -> Result<axum::Router, anyhow::Error> {
     let app_state = AppState::new().await?;
+
+    let author_routes = Router::new()
+        .route("/", get(get_author_by_id))
+        .route("/books", get(list_books_by_author_id));
+
     let router = Router::new()
         .route("/authors", get(authors))
-        .route("/authors/{author_id}", get(get_author_by_id))
+        .nest("/authors/{author_id}", author_routes)
         .route_layer(from_fn(auth))
         .route("/healthz", get(healthz))
         .with_state(app_state);
