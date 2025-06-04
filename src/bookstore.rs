@@ -1,8 +1,8 @@
+use async_trait::async_trait;
+use sqlx::postgres::PgPoolOptions;
+use sqlx::MySqlPool;
 /// The bookstore module contains SQLx code for the sample tables, authors & books
 use std::fmt::Debug;
-use async_trait::async_trait;
-use sqlx::MySqlPool;
-use sqlx::postgres::PgPoolOptions;
 
 use crate::Error;
 
@@ -10,7 +10,6 @@ pub mod authors;
 pub mod books;
 
 pub use authors::Author;
-
 
 pub struct BookStore {
     book_store_impl: Box<dyn BookStoreImpl + Send + Sync>,
@@ -23,7 +22,6 @@ impl Debug for BookStore {
 }
 
 impl BookStore {
-
     /// Create and return a BookStore with its BookStoreImpl determined dynamically at run-time
     /// based on the DATABASE_URL
     pub async fn new(database_url: &str) -> Result<BookStore, anyhow::Error> {
@@ -34,13 +32,13 @@ impl BookStore {
                 .await?;
             let book_store_impl = PostgresBookStore::new(p);
             Ok(BookStore {
-                book_store_impl: Box::new(book_store_impl)
+                book_store_impl: Box::new(book_store_impl),
             })
         } else if database_url.starts_with("mysql://") {
             let m = MySqlPool::connect(database_url).await?;
             let book_store_impl = MySqlBookStore::new(m);
             Ok(BookStore {
-                book_store_impl: Box::new(book_store_impl)
+                book_store_impl: Box::new(book_store_impl),
             })
         } else {
             Err(Error::DatabaseUrlError(database_url.to_string()).into())
@@ -50,11 +48,17 @@ impl BookStore {
     pub async fn list_authors(&self) -> Result<Vec<Author>, Error> {
         self.book_store_impl.list_authors().await
     }
+
+    pub async fn find_author_by_id(&self, author_id: i64) -> Result<Option<Author>, Error> {
+        self.book_store_impl.find_author_by_id(author_id).await
+    }
 }
 
 #[async_trait]
 pub trait BookStoreImpl {
     async fn list_authors(&self) -> Result<Vec<Author>, Error>;
+
+    async fn find_author_by_id(&self, author_id: i64) -> Result<Option<Author>, Error>;
 }
 
 #[derive(Debug, Clone)]
@@ -74,6 +78,15 @@ impl BookStoreImpl for PostgresBookStore {
         Ok(sqlx::query_as::<_, Author>("SELECT id, name FROM authors")
             .fetch_all(&self.db_pool)
             .await?)
+    }
+
+    async fn find_author_by_id(&self, author_id: i64) -> Result<Option<Author>, Error> {
+        Ok(
+            sqlx::query_as::<_, Author>("SELECT id, name FROM authors WHERE id = $1")
+                .bind(author_id)
+                .fetch_optional(&self.db_pool)
+                .await?,
+        )
     }
 }
 
@@ -95,6 +108,15 @@ impl BookStoreImpl for MySqlBookStore {
             .fetch_all(&self.db_pool)
             .await?)
     }
+
+    async fn find_author_by_id(&self, author_id: i64) -> Result<Option<Author>, Error> {
+        Ok(
+            sqlx::query_as::<_, Author>("SELECT id, name FROM authors WHERE id = $1")
+                .bind(author_id)
+                .fetch_optional(&self.db_pool)
+                .await?,
+        )
+    }
 }
 
 #[cfg(test)]
@@ -102,11 +124,10 @@ mod tests {
     use super::*;
     use serde_json::json;
 
-
-
     #[tokio::test]
     async fn test_list_authors_postgres() -> Result<(), anyhow::Error> {
-        let book_store = BookStore::new("postgres://postgres:postgres@localhost/postgraphql").await?;
+        let book_store =
+            BookStore::new("postgres://postgres:postgres@localhost/postgraphql").await?;
 
         let json = json!(book_store.list_authors().await?);
         println!("{}", serde_json::to_string_pretty(&json).unwrap());
