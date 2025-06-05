@@ -11,6 +11,7 @@ mod auth;
 mod bookstore;
 mod db_utils;
 mod handlers;
+pub mod utils;
 
 use crate::app_state::AppState;
 use crate::handlers::{authors, get_author_by_id, healthz, list_books_by_author_id};
